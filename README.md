@@ -5,7 +5,7 @@ Provisions Tinc VPN in mesh topology (i.e. where every machine is connected to e
 - SSH keys are generated on each machines and propagated to all the other machines
 - Tinc systemd service is installed and enabled
 
-Kudos for [@thisismitch](https://github.com/thisismitch) for creating [ansible-tinc](https://github.com/thisismitch/ansible-tinc)
+Kudos for [Mitchell Anicas](https://github.com/thisismitch) for creating [ansible-tinc](https://github.com/thisismitch/ansible-tinc)
 which was an inspiration for creating this role.
 
 ## Compatibility
