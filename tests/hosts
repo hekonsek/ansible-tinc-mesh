@@ -1,0 +1,3 @@
+[tinc-mesh-test]
+machine001 vpn_ip=172.22.1.1 ansible_host=212.47.228.98
+machine002 vpn_ip=172.22.1.2 ansible_host=51.15.196.248

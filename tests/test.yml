@@ -1,0 +1,3 @@
+- hosts: tinc-mesh-test
+  roles:
+    - { role: ../ansible-tinc-mesh }

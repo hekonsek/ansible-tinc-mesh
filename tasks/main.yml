@@ -1,0 +1,94 @@
+- name: Install ifconfig (net-tools)
+  package:
+    name: net-tools
+    state: present
+
+- name: Install Tinc server
+  package:
+    name: tinc
+    state: present
+
+- name: Creates mesh configuration directory
+  file: path=/etc/tinc/mesh state=directory
+
+- name: Check if private key exists
+  stat:
+    path: /etc/tinc/mesh/rsa_key.priv
+  register: key
+
+- name: Generate Tinc keys
+  shell: tincd -n mesh -K4096
+  when: key.stat.exists == False
+
+- name: Create inter-machines connections configuration
+  template: >
+    src=tinc.conf.j2
+    dest=/etc/tinc/mesh/tinc.conf
+
+- name: Ensure Tinc hosts configuration directory exists
+  file: >
+    path=/etc/tinc/mesh/hosts
+    recurse=True
+    state=directory
+
+- name: ensure tinc hosts file binds to physical ip address
+  lineinfile: >
+    dest=/etc/tinc/mesh/hosts/{{ inventory_hostname }}
+    line="Address = {{ ansible_host }}"
+    create=yes
+
+- fetch:
+    src: /etc/tinc/mesh/rsa_key.pub
+    dest: /tmp/prefix-{{ inventory_hostname }}
+    flat: yes
+
+- name: Add public SSH key into Tinc hosts file
+  blockinfile: >
+    dest=/etc/tinc/mesh/hosts/{{ inventory_hostname }}
+    block="{{ lookup('file', '/tmp/prefix-{{ inventory_hostname }}') }}"
+
+- name: Fetch Tinc host file from every machine
+  fetch: >
+    src=/etc/tinc/mesh/hosts/{{ inventory_hostname }}
+    dest=/tmp/tinc/
+    flat=yes
+
+- name: Install rsync
+  package:
+    name: rsync
+    state: present
+
+- name: sync the fetched tinc hosts files on each host
+  synchronize: >
+    src=/tmp/tinc/
+    dest=/etc/tinc/mesh/hosts/
+
+- name: Create tinc-up script
+  template: >
+    src=tinc-up.j2
+    dest=/etc/tinc/mesh/tinc-up
+    mode=0755
+
+- name: create tinc-down script
+  template: >
+    src=tinc-down.j2
+    dest=/etc/tinc/mesh/tinc-down
+    mode=0755
+
+- name: Create tinc systemd service file
+  template: >
+    src=tinc.service.j2
+    dest=/etc/systemd/system/tinc.service
+
+- name: Ensure Tinc service is started
+  service:
+    name: tinc
+    enabled: yes
+    state: started
+
+- name: Check if all machines can access each others via private IP
+  wait_for:
+    host: "{{ hostvars[item]['vpn_ip'] }}"
+    port: 22
+    timeout: 5
+  with_list: "{{play_hosts}}"

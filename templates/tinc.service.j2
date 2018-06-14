@@ -1,0 +1,11 @@
+[Unit]
+Description=Tinc Mesh VPN
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/usr/sbin/tincd -n mesh --logfile=/var/log/tinc.mesh
+ExecReload=/usr/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target
