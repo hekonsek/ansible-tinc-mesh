@@ -21,7 +21,7 @@ This playbook has been tested against Fedora 28.
 ```
 - hosts: tinc-mesh-test
   roles:
-    - { role: ../ansible-tinc-mesh }
+    - { role: hekonsek.tinc-mesh,0.0 }
 ```
 
 ## Example inventory file
